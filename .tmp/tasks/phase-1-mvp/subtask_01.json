@@ -1,0 +1,61 @@
+{
+  "id": "subtask_01",
+  "sequence": 1,
+  "batch": 1,
+  "name": "Turborepo Monorepo Initialization",
+  "description": "Set up Turborepo monorepo with workspace structure for apps (web, admin, api) and packages (ui, types, database, config, utils)",
+  "type": "infrastructure",
+  "priority": "high",
+  "estimated_hours": 4,
+  "depends_on": [],
+  "parallel": true,
+  "context_files": [
+    "/media/STORAGE/Practise/Main_Plain.md",
+    ".tmp/sessions/2026-02-14-flipkart-clone-platform-setup/external-docs-summary.md"
+  ],
+  "reference_files": [],
+  "deliverables": [
+    "package.json with workspaces configuration",
+    "turbo.json with task pipeline and caching",
+    "Directory structure: apps/, packages/",
+    "Root TypeScript configuration",
+    "ESLint and Prettier configuration",
+    ".gitignore with proper exclusions",
+    ".env.example template"
+  ],
+  "acceptance_criteria": [
+    "turbo build runs successfully",
+    "Workspace packages properly linked",
+    "TypeScript compilation works across all packages",
+    "Linting and formatting configured",
+    "Remote caching configured (optional)"
+  ],
+  "technical_notes": [
+    "Use Turborepo v2.x with strict env mode",
+    "Configure globalDependencies for .env files and tsconfig",
+    "Set up task pipeline: build depends on ^build",
+    "Use workspace:* protocol for internal dependencies",
+    "Enable persistent mode for dev tasks"
+  ],
+  "files_to_create": [
+    "package.json",
+    "turbo.json",
+    "tsconfig.json",
+    ".gitignore",
+    ".env.example",
+    ".eslintrc.js",
+    ".prettierrc",
+    "apps/.gitkeep",
+    "packages/.gitkeep"
+  ],
+  "commands_to_run": [
+    "npm install turbo -D",
+    "npm install typescript @types/node -D",
+    "npm install eslint prettier -D"
+  ],
+  "documentation_references": [
+    "Turborepo monorepo setup from external-docs-summary.md",
+    "Workspace configuration patterns",
+    "Task orchestration best practices"
+  ]
+}

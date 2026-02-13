@@ -1,0 +1,40 @@
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build output
+dist
+build
+.next
+out
+coverage
+
+# Environment files
+.env
+.env*.local
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Turbo
+.turbo
+
+# Misc
+*.log
+*.tsbuildinfo
+.cache
+
+# Testing
+coverage

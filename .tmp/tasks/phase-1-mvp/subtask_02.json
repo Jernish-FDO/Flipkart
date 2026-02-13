@@ -1,0 +1,57 @@
+{
+  "id": "subtask_02",
+  "sequence": 2,
+  "batch": 1,
+  "name": "Docker & Docker Compose Setup",
+  "description": "Create Docker and Docker Compose configuration for local development environment including PostgreSQL, Redis, and development services",
+  "type": "infrastructure",
+  "priority": "high",
+  "estimated_hours": 3,
+  "depends_on": [],
+  "parallel": true,
+  "context_files": [
+    "/media/STORAGE/Practise/Main_Plain.md",
+    ".tmp/sessions/2026-02-14-flipkart-clone-platform-setup/context.md"
+  ],
+  "reference_files": [],
+  "deliverables": [
+    "docker-compose.yml for local development",
+    "Dockerfile for Next.js apps",
+    "Dockerfile for NestJS API",
+    ".dockerignore file",
+    "docker-compose.prod.yml (production reference)",
+    "README with Docker instructions"
+  ],
+  "acceptance_criteria": [
+    "docker-compose up starts all services",
+    "PostgreSQL accessible on localhost:5432",
+    "Redis accessible on localhost:6379",
+    "Containers can communicate via Docker network",
+    "Volume persistence works for database data"
+  ],
+  "technical_notes": [
+    "Use PostgreSQL 15+ official image",
+    "Use Redis 7+ official image",
+    "Configure health checks for all services",
+    "Set up named volumes for data persistence",
+    "Use multi-stage builds for production images",
+    "Configure restart policies"
+  ],
+  "files_to_create": [
+    "docker-compose.yml",
+    "docker-compose.prod.yml",
+    "Dockerfile.web",
+    "Dockerfile.api",
+    ".dockerignore",
+    "infrastructure/docker/README.md"
+  ],
+  "commands_to_run": [
+    "docker-compose up -d",
+    "docker-compose ps",
+    "docker-compose logs"
+  ],
+  "documentation_references": [
+    "Docker best practices from Main_Plain.md",
+    "Container orchestration patterns"
+  ]
+}

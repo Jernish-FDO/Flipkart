@@ -1,0 +1,55 @@
+{
+  "id": "subtask_03",
+  "sequence": 3,
+  "batch": 1,
+  "name": "PostgreSQL & Redis Service Setup",
+  "description": "Configure PostgreSQL database and Redis cache with proper initialization scripts, health checks, and connection testing",
+  "type": "infrastructure",
+  "priority": "high",
+  "estimated_hours": 2,
+  "depends_on": [],
+  "parallel": true,
+  "context_files": [
+    "/media/STORAGE/Practise/Main_Plain.md",
+    ".tmp/sessions/2026-02-14-flipkart-clone-platform-setup/external-docs-summary.md"
+  ],
+  "reference_files": [],
+  "deliverables": [
+    "PostgreSQL initialization scripts",
+    "Database connection configuration",
+    "Redis configuration files",
+    "Connection pool settings (PgBouncer optional)",
+    "Database health check script",
+    "Environment variables template"
+  ],
+  "acceptance_criteria": [
+    "PostgreSQL creates initial database on startup",
+    "Connection pooling configured properly",
+    "Redis cache accessible and working",
+    "Health checks pass for both services",
+    "Connection strings properly configured in .env"
+  ],
+  "technical_notes": [
+    "Use connection_limit parameter for Prisma",
+    "Configure PostgreSQL for development (relaxed settings)",
+    "Set up Redis with persistence (AOF)",
+    "Use named databases for different concerns",
+    "Configure proper user permissions",
+    "Set up multi-schema support in PostgreSQL"
+  ],
+  "files_to_create": [
+    "infrastructure/docker/postgres/init.sql",
+    "infrastructure/docker/redis/redis.conf",
+    "scripts/setup/check-db-health.sh",
+    ".env.example (update with DB connection strings)"
+  ],
+  "commands_to_run": [
+    "psql -U postgres -c 'CREATE DATABASE flipkart_dev;'",
+    "redis-cli ping"
+  ],
+  "documentation_references": [
+    "PostgreSQL configuration from Main_Plain.md",
+    "Prisma connection pooling from external-docs-summary.md",
+    "Redis caching strategies"
+  ]
+}

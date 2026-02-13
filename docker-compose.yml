@@ -1,0 +1,72 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: flipkart-postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: flipkart_dev
+      POSTGRES_INITDB_ARGS: '-E UTF8 --locale=en_US.UTF-8'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - flipkart-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: flipkart-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - flipkart-network
+
+  # Prisma Studio (Database GUI - optional)
+  # Uncomment to use Prisma Studio in Docker
+  # prisma-studio:
+  #   image: node:20-alpine
+  #   container_name: flipkart-prisma-studio
+  #   working_dir: /app
+  #   command: sh -c "npm install -g prisma && prisma studio"
+  #   ports:
+  #     - '5555:5555'
+  #   volumes:
+  #     - ./packages/database:/app
+  #   environment:
+  #     DATABASE_URL: postgresql://postgres:password@postgres:5432/flipkart_dev?schema=public
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - flipkart-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  flipkart-network:
+    driver: bridge

@@ -1,0 +1,127 @@
+{
+  "id": "phase-1-mvp",
+  "name": "Phase 1: Foundation & MVP",
+  "description": "Build the core e-commerce platform with modular monolith architecture using Turborepo, Next.js, NestJS, Prisma, and PostgreSQL",
+  "phase": 1,
+  "estimated_duration": "8-12 weeks",
+  "subtasks": [
+    "subtask_01",
+    "subtask_02",
+    "subtask_03",
+    "subtask_04",
+    "subtask_05",
+    "subtask_06",
+    "subtask_07",
+    "subtask_08",
+    "subtask_09",
+    "subtask_10",
+    "subtask_11",
+    "subtask_12",
+    "subtask_13",
+    "subtask_14",
+    "subtask_15",
+    "subtask_16",
+    "subtask_17",
+    "subtask_18",
+    "subtask_19",
+    "subtask_20",
+    "subtask_21",
+    "subtask_22",
+    "subtask_23",
+    "subtask_24",
+    "subtask_25",
+    "subtask_26",
+    "subtask_27",
+    "subtask_28"
+  ],
+  "batches": [
+    {
+      "id": 1,
+      "name": "Foundation Infrastructure",
+      "tasks": ["subtask_01", "subtask_02", "subtask_03", "subtask_04"],
+      "parallel": true,
+      "estimated_duration": "1-2 days"
+    },
+    {
+      "id": 2,
+      "name": "Core Backend Infrastructure",
+      "tasks": ["subtask_05", "subtask_06", "subtask_07", "subtask_08"],
+      "parallel": false,
+      "estimated_duration": "3-4 days"
+    },
+    {
+      "id": 3,
+      "name": "Authentication & Security",
+      "tasks": ["subtask_09", "subtask_10", "subtask_11"],
+      "parallel": false,
+      "estimated_duration": "2-3 days"
+    },
+    {
+      "id": 4,
+      "name": "Core Business Modules",
+      "tasks": ["subtask_12", "subtask_13", "subtask_14", "subtask_15"],
+      "parallel": true,
+      "estimated_duration": "1 week"
+    },
+    {
+      "id": 5,
+      "name": "Frontend Applications",
+      "tasks": ["subtask_16", "subtask_17", "subtask_18", "subtask_19"],
+      "parallel": true,
+      "estimated_duration": "1 week"
+    },
+    {
+      "id": 6,
+      "name": "Feature Integration",
+      "tasks": ["subtask_20", "subtask_21", "subtask_22", "subtask_23", "subtask_24", "subtask_25"],
+      "parallel": false,
+      "estimated_duration": "2 weeks"
+    },
+    {
+      "id": 7,
+      "name": "Testing & Documentation",
+      "tasks": ["subtask_26", "subtask_27", "subtask_28"],
+      "parallel": true,
+      "estimated_duration": "1 week"
+    }
+  ],
+  "success_criteria": [
+    "Working e-commerce platform with complete user flow (browse → cart → checkout → payment)",
+    "All core modules operational (User, Product, Cart, Order, Payment)",
+    "PostgreSQL database with complete schema and migrations",
+    "Redis caching operational",
+    "Authentication working (JWT + OAuth 2.0)",
+    "Stripe payment integration functional (test mode)",
+    "Admin panel with core CRUD operations",
+    "80%+ test coverage achieved",
+    "Docker Compose setup working for local development",
+    "CI/CD pipeline operational",
+    "API documentation (Swagger) generated",
+    "All code quality checks passing (ESLint, Prettier, TypeScript)"
+  ],
+  "deliverables": [
+    "Turborepo monorepo with apps/ and packages/",
+    "Next.js customer web app (deployed)",
+    "Next.js admin dashboard (deployed)",
+    "NestJS API with 10 core modules",
+    "PostgreSQL database with full e-commerce schema",
+    "Redis cache setup",
+    "Docker Compose configuration",
+    "GitHub Actions CI/CD pipeline",
+    "Comprehensive test suite",
+    "API documentation",
+    "Deployment documentation"
+  ],
+  "technical_stack": {
+    "monorepo": "Turborepo v2.x",
+    "frontend": "Next.js 14+ (App Router), TypeScript 5.3+, Tailwind CSS, shadcn/ui",
+    "backend": "NestJS, TypeScript 5.3+, Prisma ORM",
+    "database": "PostgreSQL 15+, Redis 7+",
+    "auth": "NextAuth.js / Clerk, Passport.js, JWT",
+    "payments": "Stripe",
+    "containerization": "Docker, Docker Compose",
+    "ci_cd": "GitHub Actions"
+  },
+  "created_at": "2026-02-14T00:42:00Z",
+  "status": "pending"
+}

@@ -1,0 +1,53 @@
+{
+  "id": "subtask_04",
+  "sequence": 4,
+  "batch": 1,
+  "name": "CI/CD Pipeline Setup (GitHub Actions)",
+  "description": "Create GitHub Actions workflows for continuous integration and deployment including tests, linting, type checking, and build verification",
+  "type": "infrastructure",
+  "priority": "high",
+  "estimated_hours": 4,
+  "depends_on": [],
+  "parallel": true,
+  "context_files": [
+    "/media/STORAGE/Practise/Main_Plain.md",
+    ".tmp/sessions/2026-02-14-flipkart-clone-platform-setup/context.md"
+  ],
+  "reference_files": [],
+  "deliverables": [
+    ".github/workflows/ci.yml (PR checks)",
+    ".github/workflows/deploy.yml (deployment)",
+    "GitHub Actions caching configuration",
+    "Test workflow with coverage reporting",
+    "Lint and type-check workflows",
+    "Turbo remote cache integration (optional)"
+  ],
+  "acceptance_criteria": [
+    "CI runs on every PR",
+    "All tests pass in CI environment",
+    "Linting and type checking enforced",
+    "Build verification works",
+    "Deployment workflow configured (manual trigger)",
+    "Secrets properly configured"
+  ],
+  "technical_notes": [
+    "Use Turborepo's GitHub Actions integration",
+    "Cache node_modules and Turbo cache",
+    "Run tests in parallel where possible",
+    "Set up PostgreSQL and Redis in CI",
+    "Use matrix strategy for multi-environment testing",
+    "Configure branch protection rules"
+  ],
+  "files_to_create": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/deploy.yml",
+    ".github/workflows/test.yml",
+    ".github/dependabot.yml"
+  ],
+  "commands_to_run": [],
+  "documentation_references": [
+    "CI/CD best practices from Main_Plain.md",
+    "Turborepo CI/CD integration from external-docs-summary.md",
+    "GitHub Actions patterns"
+  ]
+}

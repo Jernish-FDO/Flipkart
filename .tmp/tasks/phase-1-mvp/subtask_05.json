@@ -1,0 +1,74 @@
+{
+  "id": "subtask_05",
+  "sequence": 5,
+  "batch": 2,
+  "name": "Prisma Schema Design - Complete E-commerce Database",
+  "description": "Design and implement complete Prisma schema for all e-commerce entities including User, Product, Category, Cart, Order, Payment, Vendor, Review, and supporting entities",
+  "type": "backend",
+  "priority": "high",
+  "estimated_hours": 8,
+  "depends_on": ["subtask_01", "subtask_03"],
+  "parallel": false,
+  "context_files": [
+    "/media/STORAGE/Practise/Main_Plain.md",
+    ".tmp/sessions/2026-02-14-flipkart-clone-platform-setup/external-docs-summary.md"
+  ],
+  "reference_files": [],
+  "deliverables": [
+    "packages/database/prisma/schema.prisma with all models",
+    "Multi-schema setup (base, shop schemas)",
+    "Proper indexes and constraints",
+    "JSONB fields for flexible attributes",
+    "Full-text search configuration",
+    "Relations properly defined",
+    "Enums for statuses and types"
+  ],
+  "acceptance_criteria": [
+    "All entities from Main_Plain.md spec included",
+    "Relations properly configured (1:1, 1:N, M:N)",
+    "Indexes on frequently queried fields",
+    "Prisma validation passes",
+    "Schema supports multi-tenancy (future-proof)",
+    "Audit fields (createdAt, updatedAt) on all models"
+  ],
+  "technical_notes": [
+    "Use explicit join tables for M:N (OrderItem for Order-Product)",
+    "Snapshot price in OrderItem for historical accuracy",
+    "Use JSONB for product attributes with GIN index",
+    "Configure fullTextSearchPostgres preview feature",
+    "Use Decimal type for money fields",
+    "Add soft delete support (deletedAt nullable)",
+    "Configure multi-schema support for logical separation"
+  ],
+  "files_to_create": [
+    "packages/database/prisma/schema.prisma",
+    "packages/database/package.json",
+    "packages/database/tsconfig.json"
+  ],
+  "commands_to_run": [
+    "npx prisma format",
+    "npx prisma validate"
+  ],
+  "models_to_include": [
+    "User (id, email, password, role, profile)",
+    "Address (multi-address support)",
+    "Category (hierarchical)",
+    "Product (with variants, attributes JSONB)",
+    "ProductVariant",
+    "Cart",
+    "CartItem",
+    "Order",
+    "OrderItem (explicit join with price snapshot)",
+    "Payment",
+    "Vendor",
+    "Review",
+    "Wishlist",
+    "Coupon",
+    "Notification"
+  ],
+  "documentation_references": [
+    "Prisma schema patterns from external-docs-summary.md",
+    "E-commerce database design from Main_Plain.md",
+    "Multi-schema PostgreSQL support"
+  ]
+}
