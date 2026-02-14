@@ -1,0 +1,377 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextSearchPostgres", "postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgcrypto, uuid_ossp(map: "uuid-ossp")]
+  schemas    = ["base", "shop"]
+}
+
+enum UserRole {
+  CUSTOMER
+  VENDOR
+  ADMIN
+  SUPPORT
+
+  @@schema("base")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURNED
+  REFUNDED
+
+  @@schema("shop")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUNDED
+
+  @@schema("shop")
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  UPI
+  NET_BANKING
+  WALLET
+  COD
+  BNPL
+
+  @@schema("shop")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String?
+  firstName     String?
+  lastName      String?
+  phone         String?   @unique
+  role          UserRole  @default(CUSTOMER)
+  emailVerified Boolean   @default(false)
+  phoneVerified Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  addresses     Address[]
+  cart          Cart?
+  orders        Order[]
+  reviews       Review[]
+  wishlistItems WishlistItem[]
+  vendor        Vendor?
+
+  @@index([email])
+  @@index([phone])
+  @@schema("base")
+}
+
+model Address {
+  id           String    @id @default(uuid())
+  userId       String
+  fullName     String
+  phone        String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  postalCode   String
+  country      String    @default("India")
+  isDefault    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ordersShipping Order[] @relation("ShippingAddress")
+  ordersBilling  Order[] @relation("BillingAddress")
+
+  @@index([userId])
+  @@schema("base")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  parentId    String?
+  isActive    Boolean   @default(true)
+  displayOrder Int      @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+  products Product[]
+
+  @@index([slug])
+  @@index([parentId])
+  @@schema("shop")
+}
+
+model Product {
+  id              String    @id @default(uuid())
+  name            String
+  slug            String    @unique
+  description     String?
+  shortDescription String?
+  sku             String    @unique
+  price           Decimal   @db.Decimal(10, 2)
+  compareAtPrice  Decimal?  @db.Decimal(10, 2)
+  costPrice       Decimal?  @db.Decimal(10, 2)
+  categoryId      String
+  vendorId        String?
+  images          Json      @default("[]")
+  attributes      Json      @default("{}")
+  isFeatured      Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  stockQuantity   Int       @default(0)
+  lowStockThreshold Int     @default(10)
+  weight          Decimal?  @db.Decimal(10, 2)
+  dimensions      Json?
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  category      Category         @relation(fields: [categoryId], references: [id])
+  vendor        Vendor?          @relation(fields: [vendorId], references: [id])
+  variants      ProductVariant[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+  wishlistItems WishlistItem[]
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([vendorId])
+  @@index([sku])
+  @@index([attributes(ops: JsonbPathOps)], type: Gin)
+  @@schema("shop")
+}
+
+model ProductVariant {
+  id            String    @id @default(uuid())
+  productId     String
+  sku           String    @unique
+  name          String
+  price         Decimal   @db.Decimal(10, 2)
+  compareAtPrice Decimal? @db.Decimal(10, 2)
+  stockQuantity Int       @default(0)
+  attributes    Json      @default("{}")
+  images        Json      @default("[]")
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([sku])
+  @@schema("shop")
+}
+
+model Cart {
+  id        String    @id @default(uuid())
+  userId    String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@schema("shop")
+}
+
+model CartItem {
+  id        String    @id @default(uuid())
+  cartId    String
+  productId String
+  quantity  Int       @default(1)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@index([productId])
+  @@schema("shop")
+}
+
+model Order {
+  id                String       @id @default(uuid())
+  orderNumber       String       @unique
+  userId            String
+  status            OrderStatus  @default(PENDING)
+  subtotal          Decimal      @db.Decimal(10, 2)
+  tax               Decimal      @db.Decimal(10, 2)
+  shippingCost      Decimal      @db.Decimal(10, 2)
+  discount          Decimal      @default(0) @db.Decimal(10, 2)
+  total             Decimal      @db.Decimal(10, 2)
+  shippingAddressId String
+  billingAddressId  String
+  notes             String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  deletedAt         DateTime?
+
+  user            User      @relation(fields: [userId], references: [id])
+  shippingAddress Address   @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+  billingAddress  Address   @relation("BillingAddress", fields: [billingAddressId], references: [id])
+  items           OrderItem[]
+  payment         Payment?
+
+  @@index([orderNumber])
+  @@index([userId])
+  @@index([status])
+  @@schema("shop")
+}
+
+model OrderItem {
+  id        String    @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal   @db.Decimal(10, 2)
+  total     Decimal   @db.Decimal(10, 2)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@schema("shop")
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  orderId         String        @unique
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @default("INR")
+  status          PaymentStatus @default(PENDING)
+  method          PaymentMethod
+  stripePaymentId String?
+  metadata        Json          @default("{}")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([stripePaymentId])
+  @@schema("shop")
+}
+
+model Vendor {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  businessName    String
+  businessEmail   String    @unique
+  businessPhone   String
+  taxId           String?
+  bankAccount     Json?
+  commissionRate  Decimal   @default(15) @db.Decimal(5, 2)
+  isVerified      Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  user     User      @relation(fields: [userId], references: [id])
+  products Product[]
+
+  @@index([userId])
+  @@index([businessEmail])
+  @@schema("shop")
+}
+
+model Review {
+  id         String    @id @default(uuid())
+  productId  String
+  userId     String
+  rating     Int
+  title      String?
+  comment    String?
+  images     Json      @default("[]")
+  isVerified Boolean   @default(false)
+  helpful    Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([productId])
+  @@index([userId])
+  @@index([rating])
+  @@schema("shop")
+}
+
+model WishlistItem {
+  id        String    @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+  @@schema("shop")
+}
+
+model Coupon {
+  id               String    @id @default(uuid())
+  code             String    @unique
+  description      String?
+  discountType     String
+  discountValue    Decimal   @db.Decimal(10, 2)
+  minOrderValue    Decimal?  @db.Decimal(10, 2)
+  maxDiscount      Decimal?  @db.Decimal(10, 2)
+  usageLimit       Int?
+  usageCount       Int       @default(0)
+  isActive         Boolean   @default(true)
+  validFrom        DateTime
+  validUntil       DateTime
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  @@index([code])
+  @@schema("shop")
+}
