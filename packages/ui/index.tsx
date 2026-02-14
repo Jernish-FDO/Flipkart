@@ -5,4 +5,8 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 export { Badge, badgeVariants } from './components/ui/badge';
 export { Separator } from './components/ui/separator';
 export { Avatar, AvatarImage, AvatarFallback } from './components/ui/avatar';
+export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
+export { Skeleton } from './components/ui/skeleton';
+export { Textarea } from './components/ui/textarea';
+export { Alert, AlertTitle, AlertDescription } from './components/ui/alert';
 export { cn } from './lib/utils';
