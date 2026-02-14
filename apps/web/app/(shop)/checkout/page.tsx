@@ -1,17 +1,115 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Label, Textarea, Separator } from "@repo/ui";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, Label, Textarea, Separator, useToast, Skeleton } from "@repo/ui";
 import { CreditCard, Truck, CheckCircle } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/contexts/auth-context";
+import { useCart } from "@/contexts/cart-context";
+import { ordersApi } from "@/lib/api";
 
 export default function CheckoutPage() {
+  const router = useRouter();
+  const { user, token } = useAuth();
+  const { items, subtotal, clearCart, isLoading: cartLoading } = useCart();
+  const { toast } = useToast();
+  
   const [step, setStep] = useState(1);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [address, setAddress] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    address1: "",
+    address2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "India",
+  });
 
-  const subtotal = 1999;
+  useEffect(() => {
+    if (!user && !cartLoading) {
+      router.push("/login?redirect=/checkout");
+    } else if (items.length === 0 && !cartLoading) {
+      router.push("/cart");
+    }
+  }, [user, items, cartLoading, router]);
+
   const tax = subtotal * 0.18;
-  const shipping = 0;
+  const shipping = subtotal > 500 ? 0 : 50;
   const total = subtotal + tax + shipping;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setAddress((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleAddressSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!address.firstName || !address.phone || !address.address1 || !address.city || !address.postalCode) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    setStep(2);
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!token) return;
+
+    setIsProcessing(true);
+    try {
+      const orderData = {
+        shippingAddress: address,
+        items: items.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity
+        })),
+        paymentMethod: "COD",
+        total: total
+      };
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      await clearCart();
+      
+      toast({
+        title: "Order placed successfully!",
+        description: "Your order has been confirmed.",
+      });
+      
+      router.push("/orders");
+    } catch (error) {
+      toast({
+        title: "Order failed",
+        description: error instanceof Error ? error.message : "Failed to place order",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  if (cartLoading || !user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <Skeleton className="h-96 w-full" />
+          </div>
+          <div>
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -38,52 +136,54 @@ export default function CheckoutPage() {
                   Shipping Address
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" placeholder="John" />
+              <CardContent>
+                <form onSubmit={handleAddressSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input id="firstName" value={address.firstName} onChange={handleInputChange} placeholder="John" required />
+                    </div>
+                    <div>
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input id="lastName" value={address.lastName} onChange={handleInputChange} placeholder="Doe" />
+                    </div>
                   </div>
                   <div>
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" placeholder="Doe" />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" placeholder="+91 98765 43210" />
-                </div>
-                <div>
-                  <Label htmlFor="address1">Address Line 1</Label>
-                  <Input id="address1" placeholder="123 Main Street" />
-                </div>
-                <div>
-                  <Label htmlFor="address2">Address Line 2 (Optional)</Label>
-                  <Input id="address2" placeholder="Apartment, suite, etc." />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="city">City</Label>
-                    <Input id="city" placeholder="Mumbai" />
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input id="phone" value={address.phone} onChange={handleInputChange} placeholder="+91 98765 43210" required />
                   </div>
                   <div>
-                    <Label htmlFor="state">State</Label>
-                    <Input id="state" placeholder="Maharashtra" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="postalCode">Postal Code</Label>
-                    <Input id="postalCode" placeholder="400001" />
+                    <Label htmlFor="address1">Address Line 1</Label>
+                    <Input id="address1" value={address.address1} onChange={handleInputChange} placeholder="123 Main Street" required />
                   </div>
                   <div>
-                    <Label htmlFor="country">Country</Label>
-                    <Input id="country" value="India" disabled />
+                    <Label htmlFor="address2">Address Line 2 (Optional)</Label>
+                    <Input id="address2" value={address.address2} onChange={handleInputChange} placeholder="Apartment, suite, etc." />
                   </div>
-                </div>
-                <Button onClick={() => setStep(2)} className="w-full">
-                  Continue to Payment
-                </Button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="city">City</Label>
+                      <Input id="city" value={address.city} onChange={handleInputChange} placeholder="Mumbai" required />
+                    </div>
+                    <div>
+                      <Label htmlFor="state">State</Label>
+                      <Input id="state" value={address.state} onChange={handleInputChange} placeholder="Maharashtra" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="postalCode">Postal Code</Label>
+                      <Input id="postalCode" value={address.postalCode} onChange={handleInputChange} placeholder="400001" required />
+                    </div>
+                    <div>
+                      <Label htmlFor="country">Country</Label>
+                      <Input id="country" value={address.country} onChange={handleInputChange} disabled />
+                    </div>
+                  </div>
+                  <div className="flex justify-end pt-4">
+                    <Button type="submit">Continue to Payment</Button>
+                  </div>
+                </form>
               </CardContent>
             </Card>
           )}
@@ -96,86 +196,29 @@ export default function CheckoutPage() {
                   Payment Method
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted">
-                    <input type="radio" name="payment" value="card" defaultChecked />
-                    <div>
-                      <p className="font-medium">Credit/Debit Card</p>
-                      <p className="text-sm text-muted-foreground">Pay securely with Stripe</p>
-                    </div>
-                  </label>
-                  <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted">
-                    <input type="radio" name="payment" value="upi" />
-                    <div>
-                      <p className="font-medium">UPI</p>
-                      <p className="text-sm text-muted-foreground">Pay using UPI apps</p>
-                    </div>
-                  </label>
-                  <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted">
-                    <input type="radio" name="payment" value="cod" />
-                    <div>
-                      <p className="font-medium">Cash on Delivery</p>
-                      <p className="text-sm text-muted-foreground">Pay when you receive</p>
-                    </div>
-                  </label>
-                </div>
-                <div className="flex gap-4">
-                  <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
-                    Back
-                  </Button>
-                  <Button onClick={() => setStep(3)} className="flex-1">
-                    Review Order
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {step === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5" />
-                  Review Order
-                </CardTitle>
-              </CardHeader>
               <CardContent className="space-y-6">
-                <div>
-                  <h3 className="font-semibold mb-2">Shipping Address</h3>
-                  <p className="text-sm text-muted-foreground">
-                    John Doe<br />
-                    123 Main Street<br />
-                    Mumbai, Maharashtra 400001<br />
-                    +91 98765 43210
-                  </p>
+                <div className="border rounded-md p-4 flex items-center gap-4 cursor-pointer bg-muted/50 border-primary">
+                  <div className="h-4 w-4 rounded-full border border-primary bg-primary" />
+                  <span className="font-medium">Cash on Delivery (COD)</span>
                 </div>
-                <Separator />
-                <div>
-                  <h3 className="font-semibold mb-2">Payment Method</h3>
-                  <p className="text-sm text-muted-foreground">Cash on Delivery</p>
+                
+                <div className="border rounded-md p-4 flex items-center gap-4 cursor-not-allowed opacity-50">
+                  <div className="h-4 w-4 rounded-full border" />
+                  <span className="font-medium">Credit / Debit Card (Coming Soon)</span>
                 </div>
-                <Separator />
-                <div>
-                  <h3 className="font-semibold mb-4">Order Items</h3>
-                  <div className="flex gap-4 p-4 bg-muted rounded-lg">
-                    <div className="w-16 h-16 bg-background rounded-md" />
-                    <div className="flex-1">
-                      <p className="font-medium">Sample Product</p>
-                      <p className="text-sm text-muted-foreground">Qty: 1</p>
-                    </div>
-                    <p className="font-semibold">₹1,999.00</p>
-                  </div>
+
+                <div className="border rounded-md p-4 flex items-center gap-4 cursor-not-allowed opacity-50">
+                  <div className="h-4 w-4 rounded-full border" />
+                  <span className="font-medium">UPI (Coming Soon)</span>
                 </div>
-                <div className="flex gap-4">
-                  <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+
+                <div className="flex justify-between pt-4">
+                  <Button variant="outline" onClick={() => setStep(1)}>
                     Back
                   </Button>
-                  <Link href="/orders/123" className="flex-1">
-                    <Button className="w-full">
-                      Place Order
-                    </Button>
-                  </Link>
+                  <Button onClick={handlePlaceOrder} disabled={isProcessing}>
+                    {isProcessing ? "Placing Order..." : `Pay ₹${total.toFixed(2)}`}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -183,27 +226,51 @@ export default function CheckoutPage() {
         </div>
 
         <div>
-          <Card className="sticky top-4">
+          <Card>
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+              
               <div className="space-y-3 mb-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">Subtotal ({items.length} items)</span>
                   <span>₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax</span>
+                  <span className="text-muted-foreground">Tax (18%)</span>
                   <span>₹{tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span>FREE</span>
+                  <span>{shipping === 0 ? 'FREE' : `₹${shipping.toFixed(2)}`}</span>
                 </div>
               </div>
+
               <Separator className="my-4" />
-              <div className="flex justify-between font-semibold text-lg">
+
+              <div className="flex justify-between font-semibold text-lg mb-6">
                 <span>Total</span>
                 <span>₹{total.toFixed(2)}</span>
+              </div>
+
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <div key={item.id} className="flex gap-4">
+                    <div className="w-16 h-16 bg-muted rounded-md overflow-hidden">
+                      {item.product.images?.[0] && (
+                        <img 
+                          src={item.product.images[0]} 
+                          alt={item.product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium line-clamp-1">{item.product.name}</p>
+                      <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                      <p className="text-sm font-semibold">₹{item.product.price.toFixed(2)}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

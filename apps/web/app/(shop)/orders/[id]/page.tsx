@@ -1,35 +1,89 @@
 "use client";
 
-import { Card, CardContent, Badge, Button, Separator } from "@repo/ui";
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { Card, CardContent, Badge, Button, Separator, Skeleton, useToast } from "@repo/ui";
 import { CheckCircle, Package, Truck, Home } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/contexts/auth-context";
+import { ordersApi } from "@/lib/api";
 
 export default function OrderDetailPage() {
-  const order = {
-    orderNumber: "ORD-1234567890",
-    status: "PROCESSING",
-    createdAt: new Date().toISOString(),
-    subtotal: 1999,
-    tax: 359.82,
-    shippingCost: 0,
-    total: 2358.82,
-    items: [
-      {
-        id: "1",
-        product: { name: "Sample Product", images: [] },
-        quantity: 1,
-        price: 1999,
-      },
-    ],
-    shippingAddress: {
-      fullName: "John Doe",
-      phone: "+91 98765 43210",
-      addressLine1: "123 Main Street",
-      city: "Mumbai",
-      state: "Maharashtra",
-      postalCode: "400001",
-    },
+  const router = useRouter();
+  const params = useParams();
+  const { user, token } = useAuth();
+  const { toast } = useToast();
+  
+  const [order, setOrder] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  useEffect(() => {
+    if (!user || !token) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchOrder = async () => {
+      try {
+        const data = await ordersApi.getById(params.id as string, token);
+        setOrder(data);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to fetch order details",
+          variant: "destructive",
+        });
+        router.push("/orders");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [user, token, params.id, router, toast]);
+
+  const handleCancelOrder = async () => {
+    if (!token || !order) return;
+
+    setIsCancelling(true);
+    try {
+      await ordersApi.cancel(order.id, token);
+      toast({
+        title: "Order cancelled",
+        description: "Your order has been cancelled successfully",
+      });
+      setOrder({ ...order, status: "CANCELLED" });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to cancel order",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCancelling(false);
+    }
   };
+
+  if (!user || isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Skeleton className="h-8 w-48 mb-8" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <Skeleton className="h-64 w-full" />
+          </div>
+          <div>
+            <Skeleton className="h-96 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return null;
+  }
 
   const statusSteps = [
     { status: "PENDING", label: "Order Placed", icon: CheckCircle },
@@ -159,11 +213,16 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
-          {currentStepIndex < 2 && (
-            <Button variant="outline" className="w-full">
-              Cancel Order
-            </Button>
-          )}
+              {currentStepIndex < 2 && order.status !== "CANCELLED" && (
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleCancelOrder}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? "Cancelling..." : "Cancel Order"}
+                </Button>
+              )}
         </div>
       </div>
     </div>

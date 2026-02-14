@@ -40,21 +40,25 @@ export default function HomePage() {
         <h2 className="text-3xl font-bold mb-8">Featured Products</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-0">
-                <div className="h-48 bg-muted rounded-t-lg" />
-                <div className="p-4">
-                  <h3 className="font-semibold mb-2">Product Name {i}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Brief product description goes here
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold">₹1,999</span>
-                    <Button size="sm">Add to Cart</Button>
+            <Link key={i} href={`/products`}>
+              <Card className="hover:shadow-lg transition-shadow h-full">
+                <CardContent className="p-0">
+                  <div className="h-48 bg-muted rounded-t-lg flex items-center justify-center text-muted-foreground">
+                    Product Image
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="p-4">
+                    <h3 className="font-semibold mb-2">Sample Product {i}</h3>
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                      Experience premium quality with our featured collection.
+                    </p>
+                    <div className="flex items-center justify-between mt-4">
+                      <span className="text-lg font-bold">₹1,999</span>
+                      <Button size="sm" variant="secondary">View Details</Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </section>

@@ -1,12 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { ShoppingCart, User, Search } from "lucide-react";
-import { Button } from "@repo/ui";
+import { Button, Badge } from "@repo/ui";
+import { useAuth } from "@/contexts/auth-context";
+import { useCart } from "@/contexts/cart-context";
 
 export default function ShopLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user, logout } = useAuth();
+  const { itemCount } = useCart();
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b">
@@ -28,16 +35,30 @@ export default function ShopLayout({
             </div>
 
             <div className="flex items-center gap-4">
-              <Link href="/auth/login">
-                <Button variant="ghost" size="sm">
-                  <User className="h-5 w-5 mr-2" />
-                  Login
-                </Button>
-              </Link>
+              {user ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Hi, {user.firstName || user.email}</span>
+                  <Button variant="ghost" size="sm" onClick={logout}>
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <Link href="/auth/login">
+                  <Button variant="ghost" size="sm">
+                    <User className="h-5 w-5 mr-2" />
+                    Login
+                  </Button>
+                </Link>
+              )}
               <Link href="/cart">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="relative">
                   <ShoppingCart className="h-5 w-5 mr-2" />
                   Cart
+                  {itemCount > 0 && (
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center">
+                      {itemCount}
+                    </Badge>
+                  )}
                 </Button>
               </Link>
             </div>

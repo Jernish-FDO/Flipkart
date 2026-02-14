@@ -1,16 +1,70 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Badge, Separator, Card, CardContent, Avatar, AvatarFallback } from "@repo/ui";
+import { useRouter } from "next/navigation";
+import { Button, Badge, Separator, Card, CardContent, Avatar, AvatarFallback, useToast } from "@repo/ui";
 import { ShoppingCart, Star, Truck, Shield, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/contexts/auth-context";
+import { useCart } from "@/contexts/cart-context";
 
 export default function ProductDetailClient({ product }: { product: any }) {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { addItem, isLoading: cartLoading } = useCart();
+  const { toast } = useToast();
+  
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const images = product.images || [];
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
+
+  const handleAddToCart = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to add items to cart",
+        variant: "destructive",
+      });
+      router.push("/login");
+      return;
+    }
+
+    setIsAddingToCart(true);
+    
+    try {
+      await addItem(product.id, quantity);
+      toast({
+        title: "Added to cart",
+        description: `${product.name} (${quantity}) added to your cart`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to add to cart",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to proceed",
+        variant: "destructive",
+      });
+      router.push("/login");
+      return;
+    }
+
+    await handleAddToCart();
+    router.push("/cart");
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -123,11 +177,22 @@ export default function ProductDetailClient({ product }: { product: any }) {
           </div>
 
           <div className="flex gap-4 mb-8">
-            <Button size="lg" className="flex-1" disabled={product.stockQuantity === 0}>
+            <Button 
+              size="lg" 
+              className="flex-1" 
+              disabled={product.stockQuantity === 0 || isAddingToCart}
+              onClick={handleAddToCart}
+            >
               <ShoppingCart className="mr-2 h-5 w-5" />
-              Add to Cart
+              {isAddingToCart ? "Adding..." : "Add to Cart"}
             </Button>
-            <Button size="lg" variant="outline" className="flex-1">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="flex-1"
+              disabled={product.stockQuantity === 0 || isAddingToCart}
+              onClick={handleBuyNow}
+            >
               Buy Now
             </Button>
           </div>
