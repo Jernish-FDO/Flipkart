@@ -22,7 +22,7 @@
     "tailwind-merge": "^2.2.1"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "@repo/config": "workspace:*",
     "@types/react": "^18.2.61",
     "@types/react-dom": "^18.2.19",
     "react": "^18.2.0",
