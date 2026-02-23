@@ -51,3 +51,4 @@ prisma/migrations/**/migration.sql
 
 # OS
 Thumbs.db
+skills
